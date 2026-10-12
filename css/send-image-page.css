@@ -1,0 +1,186 @@
+/* ============================================================
+   发送图片面板 .image-upload-modal —— 整页化
+   前置问题（真机实拍）：
+     1) 400px 居中浮窗，被键盘弹起后遮住整个输入区，看不到自己发的图
+     2) 原生 <input type=file> 直接裸露在界面上（"未选择任何文件"），很丑
+     3) 无安全区，底部按钮被 iPhone home 指示条压住
+   ============================================================ */
+
+/* 外层：去掉黑幕与 blur，整页铺满 */
+.image-upload-modal {
+    padding: 0 !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    background: var(--primary-bg, #fff) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* 内容：整页 flex 骨架 */
+.image-upload-modal .send-img-page {
+    max-width: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    background: var(--primary-bg, #fff) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden;
+    font-family: var(--font-family, 'PingFang SC', sans-serif);
+}
+
+/* 顶栏 */
+.image-upload-modal .send-img-page .modal-title {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: calc(env(safe-area-inset-top, 0px) + 16px) 16px 14px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, .07));
+    display: flex; align-items: center; gap: 9px;
+}
+.image-upload-modal .send-img-page .modal-title i { color: var(--accent-color); font-size: 15px; }
+
+/* 顶栏右侧返回键（JS 动态插入，不依赖固定 id） */
+.image-upload-modal .send-img-page .modal-title::after {
+    content: '\f00d';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    margin-left: auto;
+    width: 32px; height: 32px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    color: var(--text-secondary, #888);
+    background: var(--secondary-bg, #f2f2f4);
+    cursor: pointer;
+}
+
+/* 内容区：吃掉剩余高度、纵向可滚 */
+.image-upload-modal .send-img-page > div:nth-of-type(2) {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 0 !important;
+    padding: 20px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* 模式切换 */
+.image-upload-modal .upload-mode-btn {
+    height: 44px;
+    border-radius: 22px !important;
+    font-size: 14px !important;
+    font-weight: 600;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, .1)) !important;
+    background: var(--secondary-bg, #f2f2f4) !important;
+    color: var(--text-secondary, #777) !important;
+    cursor: pointer;
+    font-family: inherit;
+}
+.image-upload-modal .upload-mode-btn.active {
+    background: var(--accent-color, #ff6b9d) !important;
+    border-color: transparent !important;
+    color: #fff !important;
+    box-shadow: 0 4px 14px rgba(var(--accent-color-rgb), .3);
+}
+
+/* 原生 file input 隐藏（用「选择文件」按钮代替） */
+.image-upload-modal #image-file-input {
+    display: none !important;
+}
+
+/* URL 输入框 */
+.image-upload-modal #image-url-input {
+    width: 100% !important;
+    box-sizing: border-box;
+    padding: 13px 14px !important;
+    border-radius: 13px !important;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, .1)) !important;
+    background: var(--secondary-bg, #f6f6f6) !important;
+    color: var(--text-primary) !important;
+    font-size: 14px !important;
+    font-family: inherit;
+    outline: none;
+}
+.image-upload-modal #image-url-input:focus {
+    border-color: var(--accent-color, #ff6b9d) !important;
+}
+
+/* 预览区（display 由 JS 控制，这里不加 !important 避免覆盖） */
+.image-upload-modal #image-preview {
+    margin-top: 0 !important;
+    padding: 18px 0;
+    border-radius: 16px;
+    background: var(--secondary-bg, #f6f6f6);
+    order: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+    align-items: center;
+    justify-content: center;
+}
+.image-upload-modal #image-preview img {
+    max-width: 100% !important;
+    max-height: 320px !important;
+    border-radius: 12px !important;
+    border: none !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, .14);
+}
+
+/* 空态引导：选中文件前不留大片空白 */
+.image-upload-modal .send-img-page > div:nth-of-type(2)::before {
+    content: '\f03e';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    flex: 1 1 auto;
+    min-height: 160px;
+    max-height: 340px;
+    margin: 0;
+    border: 2px dashed var(--border-color, rgba(0, 0, 0, .12));
+    border-radius: 18px;
+    background: var(--secondary-bg, #f6f6f6);
+    color: var(--text-secondary, #aaa);
+    font-size: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    order: 9;   /* 预览区（order 默认 0）在上，引导在下 */
+}
+/* 有预览图时隐藏引导（由 JS 加 .has-preview 类） */
+.image-upload-modal .send-img-page.has-preview > div:nth-of-type(2)::before {
+    display: none;
+}
+
+/* 底部操作条 */
+.image-upload-modal .send-img-page .modal-buttons {
+    margin-top: auto !important;
+    flex: 0 0 auto;
+    display: flex;
+    gap: 10px;
+    padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 12px) !important;
+    border-top: 1px solid var(--border-color, rgba(0, 0, 0, .07));
+    background: var(--primary-bg, #fff);
+}
+.image-upload-modal .send-img-page .modal-buttons .modal-btn {
+    flex: 1;
+    margin: 0 !important;
+    height: 44px;
+    border-radius: 22px;
+    font-size: 14.5px;
+    font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-family: inherit;
+}
+.image-upload-modal #send-image:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}

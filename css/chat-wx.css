@@ -1,0 +1,519 @@
+/* ============================================================
+   微信风聊天界面改造（传讯入口 / 顶栏 / 输入栏 / +面板）
+   ============================================================ */
+
+/* ---------- 1. 微信风顶栏 ---------- */
+.wx-header {
+    display: flex;
+    flex-direction: row !important;   /* 必须覆盖 styles.css 里 .header 的 column，否则会竖排居中 */
+    align-items: center;
+    justify-content: space-between;   /* 返回键靠左、三点靠右 */
+    gap: 6px;
+    /* standalone（主屏启动）下刘海会压住返回键，安全区只加这一次 */
+    padding: calc(env(safe-area-inset-top, 0px) + 8px) 8px 8px;
+    background: var(--primary-bg, #fff);
+    border-bottom: 1px solid var(--border-color, #eee);
+    position: relative;
+    z-index: 30;
+    flex-shrink: 0;
+}
+.wx-nav-btn {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-primary, #111);
+    font-size: 19px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: background .15s;
+}
+.wx-nav-btn:active { background: rgba(125,125,125,.12); }
+.wx-title {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary, #111);
+    cursor: pointer;
+    overflow: hidden;
+}
+.wx-title .username { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70vw; }
+.wx-title-avatar {
+    width: 26px; height: 26px; border-radius: 6px; overflow: hidden; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--accent-color, #ff5b8d); color: #fff; font-size: 13px; font-weight: 700;
+}
+.wx-title-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.wx-hidden-actions, .wx-hidden-info { display: none !important; }
+
+/* ---------- 1.5 顶栏必须不透明（用户自定义主题把 .header 设成了透明，
+   导致返回键/名字/设置键压在消息上看不清，要“下拉才看得到”） ---------- */
+.header.wx-header {
+    background: var(--primary-bg, #fff) !important;
+    border-bottom: 1px solid var(--border-color, #eee) !important;
+}
+html[data-theme="dark"] .header.wx-header {
+    background: #1b1d24 !important;
+    border-bottom-color: rgba(255, 255, 255, .08) !important;
+}
+/* 收掉「底部栏与手机底部」之间的多余留白：主聊天区底部按真实输入栏高度收紧 */
+.main-chat-area {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* ---------- 2. 仿微信好友列表（传讯入口） ---------- */
+#wx-sessions {
+    position: fixed;
+    inset: 0;
+    z-index: 6000;
+    background: var(--primary-bg, #fff);
+    display: none;
+    flex-direction: column;
+}
+#wx-sessions.wx-show { display: flex; }
+.wx-sessions-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--secondary-bg, #f5f5f5);
+    border-bottom: 1px solid var(--border-color, #eee);
+    padding-top: max(10px, env(safe-area-inset-top));
+}
+.wx-sessions-title { flex: 1; font-size: 17px; font-weight: 700; color: var(--text-primary, #111); }
+.wx-sessions-home {
+    width: 38px; height: 38px; border: none; background: transparent; flex-shrink: 0;
+    color: var(--text-primary, #111); font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; border-radius: 8px;
+}
+.wx-sessions-home:active { background: rgba(125,125,125,.12); }
+.wx-sessions-add {
+    width: 38px; height: 38px; border: none; background: transparent;
+    color: var(--text-primary, #111); font-size: 22px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; border-radius: 8px;
+}
+.wx-sessions-add:active { background: rgba(125,125,125,.12); }
+.wx-sessions-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.wx-session-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-bottom: 1px solid var(--border-color, #eee);
+    cursor: pointer; transition: background .12s;
+}
+.wx-session-item:active { background: rgba(125,125,125,.08); }
+.wx-session-avatar {
+    width: 50px; height: 50px; border-radius: 9px; flex-shrink: 0;
+    background: var(--accent-color, #ff5b8d); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 700; overflow: hidden;
+}
+.wx-session-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.wx-session-main { flex: 1; min-width: 0; }
+.wx-session-name { font-size: 15px; font-weight: 600; color: var(--text-primary, #111); }
+.wx-session-preview {
+    font-size: 13px; color: var(--text-secondary, #888); margin-top: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 62vw;
+}
+.wx-session-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+.wx-session-time { font-size: 11px; color: var(--text-secondary, #aaa); white-space: nowrap; }
+.wx-session-badge {
+    min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+    background: #fa5151; color: #fff; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+}
+.wx-sessions-empty { text-align: center; color: var(--text-secondary, #999); padding: 40px 0; font-size: 14px; }
+
+/* 右上角 + 弹出菜单（添加好友 / 添加群聊） */
+.wx-add-sheet-mask {
+    position: fixed; inset: 0; z-index: 7000; background: rgba(0,0,0,.45);
+    display: none; align-items: flex-end;
+}
+.wx-add-sheet-mask.wx-show { display: flex; }
+.wx-add-sheet {
+    width: 100%; background: var(--primary-bg, #fff);
+    border-radius: 14px 14px 0 0; padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    animation: wxSheetUp .22s ease;
+}
+@keyframes wxSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.wx-add-sheet-btn {
+    width: 100%; border: none; background: transparent; text-align: left;
+    padding: 16px 20px; font-size: 16px; color: var(--text-primary, #111);
+    display: flex; align-items: center; gap: 14px; cursor: pointer;
+}
+.wx-add-sheet-btn:active { background: rgba(125,125,125,.08); }
+.wx-add-sheet-btn i { width: 24px; text-align: center; color: var(--accent-color, #ff5b8d); font-size: 18px; }
+.wx-add-sheet-cancel {
+    width: 100%; border: none; border-top: 8px solid var(--secondary-bg, #f5f5f5);
+    padding: 15px 0; font-size: 16px; color: var(--text-secondary, #555); background: var(--primary-bg, #fff);
+    cursor: pointer;
+}
+
+/* ---------- 微信式「新联系人 / 创建群聊」全屏面板 ---------- */
+.wx-contact-panel {
+    position: fixed; inset: 0; z-index: 7200;
+    background: var(--primary-bg, #fff);
+    display: flex; flex-direction: column;
+    animation: wxcFade .2s ease;
+}
+@keyframes wxcFade { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.wxc-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: max(10px, env(safe-area-inset-top)) 12px 10px;
+    background: var(--secondary-bg, #f5f5f5);
+    border-bottom: 1px solid var(--border-color, #eee);
+}
+.wxc-title { flex: 1; text-align: center; font-size: 17px; font-weight: 700; color: var(--text-primary, #111); }
+.wxc-back, .wxc-save {
+    width: 38px; height: 38px; border: none; background: transparent; flex-shrink: 0;
+    color: var(--text-primary, #111); font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; border-radius: 8px;
+}
+.wxc-save { color: var(--accent-color, #ff5b8d); font-size: 20px; }
+.wxc-back:active, .wxc-save:active { background: rgba(125,125,125,.12); }
+.wxc-body { flex: 1; overflow-y: auto; padding: 24px 20px calc(24px + env(safe-area-inset-bottom)); }
+.wxc-avatar-wrap { position: relative; width: 96px; height: 96px; margin: 0 auto 22px; }
+.wxc-avatar {
+    width: 96px; height: 96px; border-radius: 16px; overflow: hidden;
+    background: var(--secondary-bg, #f0f0f0); color: var(--text-secondary, #aaa);
+    display: flex; align-items: center; justify-content: center; font-size: 40px;
+}
+.wxc-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.wxc-avatar-edit {
+    position: absolute; right: -4px; bottom: -4px; width: 32px; height: 32px;
+    border: none; border-radius: 50%; background: var(--accent-color, #ff5b8d); color: #fff;
+    font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.wxc-field { margin-bottom: 20px; }
+.wxc-label { font-size: 13px; font-weight: 600; color: var(--text-secondary, #777); margin-bottom: 8px; }
+.wxc-input {
+    width: 100%; box-sizing: border-box; padding: 12px 14px; border-radius: 12px;
+    border: 1px solid var(--border-color, #ddd); background: var(--secondary-bg, #fff);
+    font-size: 16px; color: var(--text-primary, #111); font-family: inherit;
+}
+.wxc-input:focus { outline: none; border-color: var(--accent-color, #ff5b8d); }
+.wxc-hint { font-size: 13px; color: var(--text-secondary, #999); padding: 14px 0; }
+.wxc-members { display: flex; flex-wrap: wrap; gap: 12px; }
+.wxc-member {
+    display: flex; flex-direction: column; align-items: center; gap: 6px; width: 64px;
+    cursor: pointer; position: relative;
+}
+.wxc-member input { position: absolute; top: -2px; right: 2px; width: 18px; height: 18px; accent-color: var(--accent-color, #ff5b8d); z-index: 2; }
+.wxc-member-av {
+    width: 54px; height: 54px; border-radius: 12px; overflow: hidden;
+    background: var(--accent-color, #ff5b8d); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700;
+}
+.wxc-member-av img { width: 100%; height: 100%; object-fit: cover; }
+.wxc-member-name {
+    font-size: 12px; color: var(--text-primary, #111); max-width: 64px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;
+}
+
+/* 群聊头像：九宫格迷你头像 */
+.wx-session-avatar-group {
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+    gap: 1px; background: transparent; padding: 0; border-radius: 9px; overflow: hidden;
+}
+.wxc-mini {
+    width: 100%; height: 100%; background: var(--accent-color, #ff5b8d); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; overflow: hidden;
+}
+.wxc-mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wx-session-avatar-blank { background: var(--secondary-bg, #f0f0f0); color: var(--text-secondary, #bbb); }
+
+/* ---------- 3. 微信风输入栏 ---------- */
+.wx-input-area {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 7px 8px;
+    background: var(--secondary-bg, #f5f5f5);
+    border-top: 1px solid var(--border-color, #eee);
+    position: relative;
+    /* 外层 .input-area-wrapper 已经用 env(safe-area-inset-bottom) 撑起安全区，
+       这里再写一次会让安全区叠加两次，输入框下方出现很大的缝 */
+    padding-bottom: 7px;
+}
+.wx-input-area #message-input {
+    flex: 1;
+    min-width: 0;
+    resize: none;
+    border: none;
+    background: var(--primary-bg, #fff);
+    border-radius: 7px;
+    padding: 9px 12px;
+    font-size: 15px;
+    line-height: 1.4;
+    max-height: 110px;
+    color: var(--text-primary, #111);
+    font-family: inherit;
+}
+.wx-input-area #message-input:focus { outline: none; }
+.wx-voice-btn, .wx-emoji-btn, .wx-plus-btn, .wx-kbd-btn {
+    width: 38px; height: 38px; flex-shrink: 0;
+    border: none; background: transparent; color: var(--text-primary, #111);
+    font-size: 21px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; transition: background .15s;
+}
+.wx-voice-btn:active, .wx-emoji-btn:active, .wx-plus-btn:active { background: rgba(125,125,125,.12); }
+.wx-hold-talk {
+    flex: 1; min-width: 0; height: 38px; border-radius: 7px;
+    background: var(--primary-bg, #fff); border: 1px solid var(--border-color, #eee);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: var(--text-primary, #111); user-select: none;
+    -webkit-user-select: none; touch-action: none;
+}
+.wx-hold-talk.recording { background: var(--accent-color, #ff5b8d); color: #fff; }
+/* 三键共存：➕ 号、语音、表情/发送 始终同时显示，不因输入文字而切换 */
+.wx-input-area.has-text .wx-plus-btn { display: flex !important; }
+.wx-input-area.has-text .send-btn { display: flex !important; }
+.wx-input-area .send-btn {
+    width: 38px; height: 38px; flex-shrink: 0; border: none; background: transparent;
+    color: var(--accent-color, #ff5b8d); font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; border-radius: 8px;
+}
+/* 输入栏已经有 #wx-emoji-btn 了，把原来的「发表情包」键彻底藏起来。
+   styles.css 里 body.bottom-collapse-mode .sticker-send-btn 会把这个键显示出来，
+   所以这里要用更高优先级 + !important 压住，否则底部栏收纳模式下会冒出第二个表情键。 */
+.wx-input-area .sticker-send-btn,
+body.bottom-collapse-mode .wx-input-area .sticker-send-btn { display: none !important; }
+
+/* + 功能面板 */
+#chat-plus-panel {
+    position: absolute;
+    left: 0; right: 0; bottom: 100%;
+    background: var(--secondary-bg, #f5f5f5);
+    border-top: 1px solid var(--border-color, #eee);
+    display: none;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px 8px;
+    padding: 18px 12px 20px;
+}
+#chat-plus-panel.wx-show { display: grid; }
+.wx-plus-item { display: flex; flex-direction: column; align-items: center; gap: 7px; cursor: pointer; }
+.wx-plus-item:active .wx-plus-icon { background: rgba(125,125,125,.12); }
+.wx-plus-icon {
+    width: 56px; height: 56px; border-radius: 15px;
+    background: var(--primary-bg, #fff); border: 1px solid var(--border-color, #eee);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 23px; color: var(--text-primary, #111);
+}
+.wx-plus-label { font-size: 12px; color: var(--text-secondary, #777); }
+
+/* 语音消息气泡 */
+.voice-msg { display: flex; align-items: center; gap: 8px; }
+.voice-msg audio { max-width: 200px; height: 34px; }
+.voice-dur { font-size: 12px; color: var(--text-secondary, #888); }
+
+/* ---------- 4. 三点菜单增强（自定义字号滑块 / 字体选择） ---------- */
+.conv-row-col .conv-font-range {
+    width: 100%; margin-top: 10px; accent-color: var(--accent-color, #ff5b8d);
+}
+.conv-font-val { font-size: 12px; color: var(--text-secondary, #888); margin-left: 8px; }
+.conv-font-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.conv-font-pill {
+    padding: 6px 12px; border: 1px solid var(--border-color, #eee); border-radius: 999px;
+    font-size: 13px; color: var(--text-primary, #111); background: var(--primary-bg, #fff); cursor: pointer;
+}
+.conv-font-pill.on { background: var(--accent-color, #ff5b8d); color: #fff; border-color: transparent; }
+
+/* ---------- 5. 聊天设置面板：三分区（美化 / 功能 / 数据） ---------- */
+.conv-tabs {
+    display: flex; gap: 8px; padding: 8px 14px;
+    border-bottom: 1px solid var(--border-color, #eee);
+    background: var(--primary-bg, #fff);
+}
+.conv-tab {
+    flex: 1; padding: 8px 0; border: none; background: transparent; cursor: pointer;
+    font-size: 14px; font-weight: 600; color: var(--text-secondary, #888); border-radius: 8px;
+}
+.conv-tab.on { background: var(--accent-color, #ff5b8d); color: #fff; }
+
+.conv-sec-title {
+    padding: 14px 16px 6px; font-size: 12px; font-weight: 700;
+    color: var(--text-secondary, #999); letter-spacing: .5px;
+}
+
+/* 颜色色板 */
+.conv-swatches { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+.conv-swatch {
+    width: 26px; height: 26px; border-radius: 7px; padding: 0; cursor: pointer;
+    border: 1px solid var(--border-color, #ddd);
+}
+.conv-swatch.on { outline: 2px solid var(--accent-color, #ff5b8d); outline-offset: 1px; }
+.conv-color {
+    width: 30px; height: 28px; padding: 0; cursor: pointer;
+    border: 1px solid var(--border-color, #ddd); border-radius: 7px; background: transparent;
+}
+
+.conv-textarea {
+    width: 100%; margin-top: 10px; padding: 10px; resize: vertical;
+    border: 1px solid var(--border-color, #ddd); border-radius: 10px;
+    background: var(--primary-bg, #fff); color: var(--text-primary, #111);
+    font-size: 12px; font-family: ui-monospace, Consolas, monospace;
+}
+
+.conv-danger { color: #e5484d !important; }
+.conv-bg-btn.conv-danger { border-color: #e5484d; }
+
+/* 批量发送按钮（功能页开关打开后在微信输入栏里显示） */
+.wx-input-area .batch-btn.conv-show {
+    display: flex !important; width: 38px; height: 38px; font-size: 18px;
+    border-radius: 8px; background: transparent; color: var(--text-primary, #111);
+}
+
+/* ---------- 5.2 全屏壳：锁死为布局视口，不受 iOS 工具栏/键盘/滚动影响 ----------
+   【踩坑记录】原方案 html,body{height:100vh / 100dvh}。
+   加到 iOS 主屏（standalone）后，dvh 会随可视区/安全区变化，body 高度跟着跳；
+   再叠加下面的 --kb-shift 二次位移，就表现成：
+   输入栏在屏幕中间上下"呼吸"漂浮、下面还露着消息 —— 即"页面截一半、下面死掉"。
+   改用 html,body{height:100%}（相对初始包含块=布局视口，iOS 上稳定），
+   并用 body{position:fixed;inset:0} 锁死整个 App 外壳。键盘只交给 --kb-shift 单独处理。 */
+html, body {
+    height: 100% !important;
+    overflow: hidden !important;
+    overscroll-behavior: none;
+}
+body {
+    /* 撑满视口，别留黑边；fixed 锁死避免 iOS 弹性滚动把整页拖走 */
+    width: auto;
+    max-width: none;
+    position: fixed !important;
+    inset: 0 !important;
+    overflow: hidden !important;
+}
+
+/* ---------- 5.5 输入栏底部不留缝 ----------
+   用户自定义主题里有 .input-area-wrapper{min-height:70px}，
+   而微信风输入栏本身只有 ~52px，于是输入框下面空出一大条。 */
+.input-area-wrapper {
+    min-height: 0 !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+}
+/* 键盘弹起时把整个输入栏顶上去（--kb-shift 由 listeners.js 按 visualViewport 算出） */
+.input-area-wrapper {
+    transform: translateY(calc(-1 * var(--kb-shift, 0px)));
+    transition: transform .12s linear;
+}
+body.kb-open .input-area-wrapper { transition: none; }
+
+/* ---------- 6. 顶栏：只显示对方名字，固定 16px ---------- */
+.wx-title .username { font-size: 16px !important; font-weight: 600; letter-spacing: .2px; }
+
+/* call.js 会往输入栏里插一个视频通话键，占用发送键的位置 —— 藏起来，
+   视频通话改放在输入框的 ＋ 面板里 */
+.wx-input-area #call-toolbar-btn,
+.input-area #call-toolbar-btn { display: none !important; }
+
+/* ---------- 7. 阻止 iOS 聚焦自动放大（standalone 整页上移的成因之一） ----------
+   iOS 对字号 <16px 的输入框聚焦时会强制放大页面；主屏（standalone）下键盘收起后
+   视口偏移常残留不复位 → 整页上移、顶部钻进状态栏、底部一条白。
+   触屏设备上把所有可聚焦输入类字号钉到 16px（桌面预览 pointer:coarse 不命中，不受影响）。 */
+@media (pointer: coarse) {
+    .message-input, .modal-input, .modal-textarea, .conv-textarea,
+    input[type="text"], input[type="password"], input[type="search"],
+    input[type="number"], input[type="tel"], input[type="url"], input[type="email"],
+    textarea, select {
+        font-size: 16px !important;
+    }
+}
+
+/* ---------- 7. ＋ 面板：4 列网格 ---------- */
+#chat-plus-panel {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px 0;
+    padding: 10px 6px;
+}
+
+/* ---------- 8. 头像预览框 ---------- */
+.conv-av-line { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+.conv-av-preview {
+    width: 62px; height: 62px; flex-shrink: 0; border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--border-color, #ddd); background: var(--secondary-bg, #f7f7f7);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-secondary, #aaa); font-size: 22px;
+}
+.conv-av-preview img { width: 100%; height: 100%; object-fit: cover; }
+.conv-av-line .conv-bg-actions { flex: 1; margin-top: 0; }
+
+/* ---------- 9. 两个等宽方框（字体：系统默认 / 本地字体文件） ---------- */
+.conv-two-col { display: flex; gap: 10px; margin-top: 10px; }
+.conv-box-btn {
+    flex: 1 1 0; min-width: 0; width: 50%;
+    padding: 12px 6px; cursor: pointer;
+    border: 1px solid var(--border-color, #ddd); border-radius: 12px;
+    background: var(--primary-bg, #fff); color: var(--text-primary, #111);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    font-size: 13px; font-weight: 600; transition: all .15s;
+}
+.conv-box-btn i { font-size: 16px; color: var(--accent-color, #ff5b8d); }
+.conv-box-btn:active { background: var(--secondary-bg, #f2f2f2); }
+
+/* ---------- 10. 配色收纳（点开再选色） ---------- */
+.conv-fold-btn {
+    width: 100%; margin-top: 10px; padding: 10px 12px; cursor: pointer;
+    border: 1px solid var(--border-color, #ddd); border-radius: 10px;
+    background: var(--primary-bg, #fff); color: var(--text-primary, #111);
+    font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+}
+.conv-fold-btn i.fa-palette { color: var(--accent-color, #ff5b8d); }
+.conv-fold-arrow { margin-left: auto; transition: transform .18s; font-size: 11px; }
+.conv-fold-btn.open .conv-fold-arrow { transform: rotate(180deg); }
+.conv-color-box {
+    margin-top: 8px; padding: 10px; border-radius: 10px;
+    border: 1px dashed var(--border-color, #ddd); background: var(--secondary-bg, #fafafa);
+}
+.conv-color-line { padding: 6px 0; }
+.conv-color-line > span {
+    display: block; font-size: 12px; color: var(--text-secondary, #888); margin-bottom: 2px;
+}
+.conv-color-line .conv-swatches { margin-top: 4px; }
+
+/* ---------- 11. 滑块提示行 ---------- */
+.conv-range-hint { font-size: 12px; color: var(--text-secondary, #888); margin-top: 4px; }
+
+/* ---- 数据区：滑块同样占满 ---- */
+.conv-sec[data-sec="data"] .conv-font-range { margin-top: 6px; }
+
+/* ---------- 12. 音乐小窗：可拖动 + 可关闭 ---------- */
+#music-mini-window,
+.music-mini-window,
+.vinyl-mini {
+    touch-action: none;
+    cursor: grab;
+}
+#music-mini-window.dragging,
+.music-mini-window.dragging,
+.vinyl-mini.dragging { cursor: grabbing; }
+.music-mini-close, .vinyl-mini-close {
+    position: absolute; top: -6px; right: -6px; z-index: 5;
+    width: 20px; height: 20px; border-radius: 50%; border: none;
+    background: rgba(0,0,0,.55); color: #fff; font-size: 11px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+}
+
+/* ---------- 13. 聊天表情面板：分组筛选条 ---------- */
+.stk-group-bar {
+    display: flex; gap: 6px; overflow-x: auto; padding: 4px 2px 8px;
+    scrollbar-width: none; flex-shrink: 0;
+}
+.stk-group-bar::-webkit-scrollbar { display: none; }
+.stk-g-chip {
+    flex-shrink: 0; padding: 4px 11px; border-radius: 999px; cursor: pointer;
+    font-size: 12px; color: var(--text-secondary, #888);
+    background: var(--secondary-bg, #f5f5f5); border: 1px solid var(--border-color, #e5e5e5);
+}
+.stk-g-chip.sel {
+    background: rgba(var(--accent-color-rgb, 255,91,141), .14);
+    color: var(--accent-color, #ff5b8d); border-color: transparent; font-weight: 600;
+}

@@ -1,0 +1,72 @@
+/* ============================================================
+   .stp —— 全局数字步进器（由 js/stepper-fx.js 生成，替换 range 滑杆）
+   ============================================================ */
+.stp {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+    background: var(--secondary-bg, #f2f2f4);
+    border-radius: 18px;
+    padding: 3px;
+    vertical-align: middle;
+}
+.stp button {
+    width: 28px; height: 28px;
+    border: none;
+    border-radius: 50%;
+    background: var(--primary-bg, #fff);
+    color: var(--text-primary, #333);
+    font-size: 11px;
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+    transition: transform .1s, background .15s, color .15s;
+}
+.stp button:active {
+    background: var(--accent-color, #ff6b9d);
+    color: #fff;
+    transform: scale(.92);
+}
+.stp b {
+    min-width: 50px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary, #222);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* 原 range 隐藏但保留（业务 JS 仍读写它的 value） */
+input[type=range].stp-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+}
+
+/* 步进器已经显示数值了，紧邻的那个旧数值 span 不再重复显示
+   （JS 仍会更新它，只是看不见，避免脚本找不到元素报错） */
+.stp + span.stp-value-dup,
+.stp + .stp-value-dup { display: none !important; }
+/* 通用：range 被隐藏后，它后面紧跟的纯数值 span 隐藏 */
+.stp ~ span.stp-dup { display: none !important; }
+
+/* 原来的「滑杆容器」通常还带 font-size-slider 类，这里让它别再占宽 */
+.font-size-slider.stp-hidden,
+.conv-font-range.stp-hidden,
+.fs-range.stp-hidden {
+    display: inline-block !important;
+}
+
+/* 深色模式微调 */
+html[data-theme="dark"] .stp button {
+    background: rgba(255, 255, 255, .1);
+    color: rgba(255, 255, 255, .9);
+}
+html[data-theme="dark"] .stp b { color: #eee; }

@@ -1,0 +1,120 @@
+/* ============================================================
+   声音克隆 #voice-clone-modal —— 整页化
+   前置问题：400px 居中浮窗 + 80vh 截断 + 全篇内联样式撑不开
+   保留全部原有 id 与 onclick 钩子，只调结构与样式
+   ============================================================ */
+#voice-clone-modal {
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+    background: var(--primary-bg, #fff);
+}
+#voice-clone-modal .modal-content {
+    max-width: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--primary-bg, #fff);
+    font-family: var(--font-family, 'PingFang SC', sans-serif);
+}
+
+/* 顶栏 */
+#voice-clone-modal .modal-title {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: calc(env(safe-area-inset-top, 0px) + 16px) 16px 14px;
+    font-size: 17px; font-weight: 700; color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, .07));
+    display: flex; align-items: center; gap: 9px;
+}
+#voice-clone-modal .modal-title i { color: var(--accent-color); font-size: 15px; }
+/* 顶栏左侧是返回箭头，不着强调色 */
+#voice-clone-modal .modal-title i.fa-chevron-left { color: var(--text-secondary, #888); }
+
+/* 两个 step 都是直接 flex 子级，统一当滚动内容区 */
+#voice-clone-modal #voice-clone-step1,
+#voice-clone-modal #voice-clone-step2 {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 22px 18px;
+}
+/* step1 原有内联 padding 复位 */
+#voice-clone-modal #voice-clone-step1 > div:first-child {
+    font-size: 13px;
+    color: var(--text-secondary, #888);
+    line-height: 1.75;
+    margin-bottom: 18px !important;
+}
+
+/* 上传区 */
+#voice-clone-modal #voice-clone-upload-area {
+    border: 2px dashed var(--border-color, rgba(0, 0, 0, .15));
+    border-radius: 16px;
+    padding: 40px 20px !important;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    background: var(--secondary-bg, #f7f7f7);
+}
+#voice-clone-modal #voice-clone-upload-area:active {
+    border-color: var(--accent-color);
+    background: rgba(var(--accent-color-rgb), .05);
+}
+
+/* 名称输入 */
+#voice-clone-modal #voice-clone-name {
+    padding: 12px 13px !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+}
+
+/* 通用按钮：整页里更高更好点 */
+#voice-clone-modal button[id^="voice-clone-"],
+#voice-clone-modal #voice-clone-preview button {
+    height: 46px;
+    border-radius: 23px !important;
+    font-size: 14.5px !important;
+    font-weight: 600;
+}
+
+/* step2 克隆中 */
+#voice-clone-modal #voice-clone-loading { padding: 60px 0 !important; }
+
+/* 试听文案气泡 */
+#voice-clone-modal #voice-clone-preview-text {
+    border-radius: 14px !important;
+    padding: 16px 18px !important;
+    font-size: 14px !important;
+    line-height: 1.7;
+    margin-bottom: 18px !important;
+}
+
+/* 底部操作条 */
+#voice-clone-modal .modal-buttons {
+    margin-top: auto !important;
+    flex: 0 0 auto;
+    position: static !important;
+    background: var(--primary-bg, #fff) !important;
+    border-top: 1px solid var(--border-color, rgba(0, 0, 0, .07));
+    padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 12px) !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    z-index: auto;
+}
+#voice-clone-modal .modal-buttons .modal-btn {
+    flex: 1;
+    margin: 0 !important;
+    height: 42px;
+    border-radius: 21px;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}

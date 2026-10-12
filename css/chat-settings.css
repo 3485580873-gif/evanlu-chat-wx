@@ -1,0 +1,229 @@
+/* ============================================================
+   对话设置面板（per-conversation settings）—— mochi 风格白卡
+   ============================================================ */
+#chat-conv-settings-btn { display: flex; }
+
+/* 全屏页面式设置面板（不再是居中浮窗） */
+.conv-settings-mask {
+    position: fixed; inset: 0; z-index: 3200;
+    background: var(--primary-bg, #fff);
+    display: none;
+    opacity: 0; transition: opacity .18s ease;
+}
+.conv-settings-mask.show { display: block; opacity: 1; }
+
+.conv-settings-panel {
+    width: 100%; height: 100%;
+    background: var(--primary-bg, #fff);
+    overflow: hidden;
+    font-family: var(--font-family, 'PingFang SC', 'Microsoft YaHei', sans-serif);
+    display: flex; flex-direction: column;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.conv-settings-mask.show .conv-settings-panel { transform: none; }
+
+.conv-settings-head {
+    position: relative;
+    flex-shrink: 0;
+    padding: 18px 18px 14px;
+    border-bottom: 1px solid var(--border-color, rgba(0,0,0,.07));
+    background: var(--primary-bg, #fff);
+}
+.conv-settings-title { font-size: 16px; font-weight: 700; color: var(--text-primary, #222); display: flex; align-items: center; gap: 8px; }
+.conv-settings-title i { color: var(--accent-color, #ff6b9d); }
+.conv-settings-sub { font-size: 11px; color: var(--text-secondary, #999); margin-top: 3px; opacity: .8; }
+.conv-settings-close {
+    position: absolute; top: 14px; right: 14px;
+    width: 30px; height: 30px; border-radius: 50%;
+    border: none; background: var(--secondary-bg, #f1f1f3); color: var(--text-secondary, #888);
+    cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;
+}
+.conv-settings-close:active { transform: scale(.9); }
+
+.conv-settings-body { flex: 1; padding: 6px 18px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+.conv-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border-color, rgba(0,0,0,.06));
+}
+.conv-row:last-child { border-bottom: none; }
+.conv-row-main { flex: 1; min-width: 0; }
+.conv-row-title { font-size: 14px; font-weight: 600; color: var(--text-primary, #222); }
+.conv-row-desc { font-size: 11px; color: var(--text-secondary, #999); margin-top: 2px; opacity: .85; }
+
+/* 数字输入（数据区：回复速度 / 概率 / 主动发消息区间） */
+.conv-row-col { flex-direction: column; align-items: stretch; }
+.conv-num-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.conv-num {
+    flex: 1; min-width: 0; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--border-color, #d4d4d8);
+    background: var(--secondary-bg, #f7f7f8); color: var(--text-primary, #222);
+    font-size: 15px; font-weight: 600; font-family: inherit;
+}
+.conv-num:focus { outline: none; border-color: var(--accent-color, #ff6b9d); }
+.conv-num-unit { flex-shrink: 0; font-size: 13px; color: var(--text-secondary, #888); }
+
+/* 分段控件 */
+.conv-seg {
+    display: flex; flex-shrink: 0;
+    background: var(--secondary-bg, #f1f1f3);
+    border-radius: 12px; padding: 3px;
+    gap: 2px;
+}
+.conv-seg button {
+    border: none; background: transparent; cursor: pointer;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    color: var(--text-secondary, #888);
+    padding: 6px 11px; border-radius: 9px;
+    transition: all .15s ease;
+}
+.conv-seg button.on {
+    background: var(--primary-bg, #fff);
+    color: var(--accent-color, #ff6b9d);
+    box-shadow: 0 1px 4px rgba(0,0,0,.1);
+}
+
+/* 开关 */
+.conv-switch {
+    flex-shrink: 0;
+    width: 46px; height: 27px; border-radius: 14px;
+    background: var(--border-color, #d4d4d8);
+    position: relative; cursor: pointer;
+    transition: background .2s ease;
+}
+.conv-switch .conv-knob {
+    position: absolute; top: 3px; left: 3px;
+    width: 21px; height: 21px; border-radius: 50%;
+    background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.25);
+    transition: left .2s cubic-bezier(.2,.8,.2,1);
+}
+.conv-switch.on { background: var(--accent-color, #ff6b9d); }
+.conv-switch.on .conv-knob { left: 22px; }
+
+.conv-settings-foot { padding: 12px 18px 18px; }
+.conv-reset {
+    width: 100%; padding: 11px 0;
+    border: 1px solid var(--border-color, rgba(0,0,0,.12));
+    border-radius: 14px; background: transparent;
+    color: var(--text-secondary, #888); font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+}
+.conv-reset:active { transform: scale(.98); background: var(--secondary-bg, #f1f1f3); }
+
+/* ============================================================
+   设置对聊天界面的实际作用（对齐 evanlu 真实类名）
+   evanlu 消息结构：.message-wrapper.sent|.received → .message-avatar + .message.message-sent|.message-received
+   ============================================================ */
+/* 气泡样式（覆盖 --radius，mochi 风圆角 / 极简） */
+body.conv-bubble-rounded .chat-container { --radius: 22px; }
+body.conv-bubble-minimal .chat-container { --radius: 6px; }
+body.conv-bubble-minimal .chat-container .message { box-shadow: none; }
+
+/* 字号 */
+body.conv-font-sm .chat-container .message { font-size: 13px; }
+body.conv-font-md .chat-container .message { font-size: 15px; }
+body.conv-font-lg .chat-container .message { font-size: 17px; }
+
+/* 消息头像：关闭时隐藏并收起间距 */
+body:not(.conv-show-avatar) .message-avatar { display: none; }
+body:not(.conv-show-avatar) .message-wrapper { gap: 0; }
+
+/* 顶栏头像 */
+body:not(.conv-header-avatar) #partner-avatar-container { display: none; }
+
+/* 自动滚动：标记后由 JS 在渲染时判断 */
+body.conv-no-autoscroll .auto-scroll-hint { display: none; }
+
+/* 自定义聊天背景时，弱化消息阴影保证可读（mochi 行为） */
+.chat-container.conv-has-bg .message { box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+
+/* ============================================================
+   设置面板内新增控件：输入框 / 背景色块 / 背景按钮
+   ============================================================ */
+.conv-row-col { flex-direction: column; align-items: stretch; gap: 10px; }
+.conv-row-col .conv-row-main { width: 100%; }
+.conv-input {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text-primary, #222);
+    background: var(--secondary-bg, #f1f1f3);
+    border: 1px solid var(--border-color, rgba(0,0,0,.1));
+    border-radius: 12px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color .16s;
+}
+.conv-input:focus { border-color: var(--accent-color, #ff6b9d); }
+
+.conv-bg-swatches {
+    display: flex; flex-wrap: wrap; gap: 9px;
+}
+.conv-bg-dot {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 2px solid var(--border-color, rgba(0,0,0,.14));
+    cursor: pointer; padding: 0; background: #fff;
+    position: relative; transition: transform .14s, box-shadow .14s;
+    background-clip: padding-box;
+}
+.conv-bg-dot:hover { transform: scale(1.08); }
+.conv-bg-dot.on { box-shadow: 0 0 0 2px var(--accent-color, #ff6b9d); border-color: #fff; }
+.conv-bg-dot-none {
+    background:
+        linear-gradient(45deg, transparent 45%, rgba(0,0,0,.18) 45%, rgba(0,0,0,.18) 55%, transparent 55%),
+        var(--secondary-bg, #f1f1f3);
+}
+.conv-bg-actions { display: flex; gap: 8px; }
+.conv-bg-btn {
+    flex: 1;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    color: var(--text-secondary, #888);
+    background: var(--secondary-bg, #f1f1f3);
+    border: 1px solid var(--border-color, rgba(0,0,0,.1));
+    border-radius: 11px; padding: 8px 0;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: .16s;
+}
+.conv-bg-btn:active { transform: scale(.97); }
+.conv-bg-btn:hover { color: var(--accent-color, #ff6b9d); }
+
+/* ============================================================
+   气泡实时预览框（聊天设置 → 美化 → 自定义气泡 CSS）
+   ============================================================ */
+.conv-bubble-preview {
+    margin-top: 8px;
+    padding: 14px 12px;
+    border-radius: 16px;
+    background: var(--secondary-bg, #f1f1f3);
+    border: 1px solid var(--border-color, rgba(0,0,0,.08));
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.conv-bubble-preview .bp-row { display: flex; }
+.conv-bubble-preview .bp-row.me { justify-content: flex-end; }
+.conv-bubble-preview .bp-bubble {
+    max-width: 78%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.45;
+    word-break: break-word;
+    box-shadow: 0 1px 2px rgba(0,0,0,.08);
+}
+.conv-bubble-preview .message-received {
+    background: var(--message-received-bg, #fff);
+    color: var(--message-received-text, #222);
+    border-top-left-radius: 4px;
+}
+.conv-bubble-preview .message-sent {
+    background: var(--message-sent-bg, #95ec69);
+    color: var(--message-sent-text, #222);
+    border-top-right-radius: 4px;
+}
+html[data-theme="dark"] .conv-bubble-preview .message-received { background: #2b2f36; color: #e8eaed; }
+html[data-theme="dark"] .conv-bubble-preview .message-sent { background: #3a5a40; color: #e8eaed; }

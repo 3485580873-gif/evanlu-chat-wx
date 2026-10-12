@@ -1,0 +1,151 @@
+/* ============================================================
+   聊天设置 #chat-modal —— 整页化覆盖
+   修复：仍是 400px 居中浮窗 + 顶部 tabs 被裁 + 下方大片灰底
+   ============================================================ */
+#chat-modal {
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+    background: var(--primary-bg, #fff);
+}
+#chat-modal .modal-content {
+    max-width: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;   /* 关键：基础是 80vh/92vh，不覆盖就会被砍 */
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--primary-bg, #fff);
+    font-family: var(--font-family, 'PingFang SC', sans-serif);
+}
+
+/* ---------- 顶栏：加返回键 ---------- */
+#chat-modal .cs-header {
+    flex: 0 0 auto;
+    padding: calc(env(safe-area-inset-top, 0px) + 14px) 14px 0;
+    background: var(--primary-bg, #fff);
+    border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, .07));
+}
+#chat-modal .cs-header-top {
+    display: flex; align-items: center; justify-content: flex-start;
+    gap: 10px; margin-bottom: 12px;
+}
+#chat-modal .cs-header-title {
+    display: flex; align-items: center; gap: 9px;
+    font-size: 17px; font-weight: 700; color: var(--text-primary);
+}
+/* ---------- 顶栏：底部已有操作条，顶栏不再重复放返回键 ---------- */
+#chat-modal .cs-back { display: none !important; }
+
+
+/* ---------- tabs：横滑，别被裁 ---------- */
+#chat-modal .cs-tabs {
+    display: flex !important;
+    gap: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 10px;
+    scrollbar-width: none;
+}
+#chat-modal .cs-tabs::-webkit-scrollbar { display: none; }
+#chat-modal .cs-tab {
+    flex: 0 0 auto !important;
+    padding: 8px 15px;
+    border-radius: 16px;
+    font-size: 13px;
+    white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 6px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    background: var(--secondary-bg, #f2f2f4);
+    color: var(--text-secondary, #888);
+    font-family: inherit;
+}
+#chat-modal .cs-tab.active {
+    background: var(--accent-color, #ff6b9d);
+    color: #fff;
+    font-weight: 600;
+    border-color: transparent;
+}
+
+/* ---------- 内容区：吃掉剩余高度 ---------- */
+#chat-modal .cs-panels {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 14px 20px;
+}
+#chat-modal .cs-panel { display: none; }
+#chat-modal .cs-panel.active { display: block; }
+#chat-modal .cs-group-label {
+    font-size: 12px; font-weight: 700; color: var(--text-secondary, #888);
+    padding: 14px 2px 8px; margin: 0;
+}
+#chat-modal .cs-group-label:first-child { padding-top: 0; }
+#chat-modal .cs-card {
+    border-radius: 15px; overflow: hidden;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, .06));
+    background: var(--primary-bg, #fff);
+}
+#chat-modal .setting-pill-row {
+    padding: 13px 14px;
+    display: flex; align-items: center; gap: 11px;
+    border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, .05));
+    cursor: pointer;
+}
+#chat-modal .setting-pill-row:last-child { border-bottom: none; }
+
+/* ---------- 底部操作条 ---------- */
+#chat-modal .cs-footer {
+    margin-top: auto !important;
+    flex: 0 0 auto;
+    display: flex;
+    gap: 10px;
+    padding: 10px 14px calc(env(safe-area-inset-bottom, 0px) + 12px) !important;
+    border-top: 1px solid var(--border-color, rgba(0, 0, 0, .07));
+    background: var(--primary-bg, #fff);
+}
+#chat-modal .cs-footer .modal-btn {
+    flex: 1 1 0;
+    margin: 0 !important;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 42px; border-radius: 21px; font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, .1));
+    background: var(--secondary-bg, #f2f2f4);
+    color: var(--text-primary, #333);
+}
+#chat-modal .cs-footer #close-chat {
+    flex: 0 0 auto;
+    padding: 0 22px;
+    background: var(--accent-color, #ff6b9d);
+    border-color: transparent;
+    color: #fff;
+}
+#chat-modal .modal-buttons { margin-top: auto !important; }
+#chat-modal #back-data { display: none !important; }
+
+/* ---------- 表单元素在整页里更好点 ---------- */
+#chat-modal input[type=password],
+#chat-modal input[type=text],
+#chat-modal select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, .1));
+    border-radius: 11px;
+    background: var(--primary-bg, #fff);
+    color: var(--text-primary, #222);
+    font-size: 13.5px;
+    font-family: inherit;
+    outline: none;
+}
+#chat-modal input:focus, #chat-modal select:focus {
+    border-color: var(--accent-color, #ff6b9d);
+}
+#chat-modal input[type=range] { width: 100%; accent-color: var(--accent-color, #ff6b9d); }

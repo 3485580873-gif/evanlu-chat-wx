@@ -1,0 +1,73 @@
+/* ============================================================
+   页面型 modal 手机端整页化：设置 / 外观 / 高级设置
+   目的：与 fs-page 全屏功能页统一为"顶栏 / 滚动内容 / 底部操作条"的 App 式布局，
+        消除"设置是居中小卡片、功能页是全屏"的两副面孔。
+   说明：小确认框（改名 / 注释 / 拍一拍 / 成员编辑 / 声明）保持居中卡片，不在此列。
+   ============================================================ */
+
+@media (max-width: 520px) {
+    /* 外壳铺满，去掉居中对齐 */
+    #settings-modal,
+    #appearance-modal,
+    #advanced-modal {
+        padding: 0;
+        align-items: stretch;
+        justify-content: stretch;
+    }
+
+    #settings-modal .modal-content,
+    #appearance-modal .modal-content,
+    #advanced-modal .modal-content {
+        width: 100% !important;
+        max-width: none !important;
+        height: 100% !important;
+        max-height: none !important;   /* 基础是 80vh，不覆盖就会被砍 20% */
+        border-radius: 0 !important;
+        border-left: none !important;
+        border-right: none !important;
+        box-shadow: none !important;
+        animation: none !important;    /* 关掉入场缩放，避免停在 scale(.95) 起始态 */
+        transform: none !important;
+        opacity: 1 !important;
+        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px) !important;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* ---------- 顶栏吸顶 ---------- */
+    #settings-modal .modal-content > .modal-title,
+    #appearance-modal .modal-content > .modal-title,
+    #advanced-modal .modal-content > .modal-title {
+        position: sticky;
+        top: 0;
+        z-index: 6;
+        flex: 0 0 auto;
+        margin: 0 -24px;
+        padding: calc(env(safe-area-inset-top, 0px) + 14px) 24px 12px;
+        background: var(--secondary-bg);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    /* ---------- 内容区吃掉剩余高度 ---------- */
+    #settings-modal .modal-content > *:not(.modal-title):not(.modal-buttons),
+    #appearance-modal .modal-content > *:not(.modal-title):not(.modal-buttons),
+    #advanced-modal .modal-content > *:not(.modal-title):not(.modal-buttons) {
+        flex: 0 0 auto;
+    }
+
+    /* ---------- 底部操作条吸底 ---------- */
+    #settings-modal .modal-content > .modal-buttons,
+    #appearance-modal .modal-content > .modal-buttons,
+    #advanced-modal .modal-content > .modal-buttons {
+        position: sticky;
+        bottom: 0;
+        z-index: 6;
+        flex: 0 0 auto;
+        margin-top: auto;
+        margin-left: -24px;
+        margin-right: -24px;
+        padding: 12px 24px calc(env(safe-area-inset-bottom, 0px) + 12px);
+        background: var(--secondary-bg);
+        border-top: 1px solid var(--border-color);
+    }
+}

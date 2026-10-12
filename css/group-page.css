@@ -1,0 +1,225 @@
+/* ============================================================
+   群聊设置 #group-chat-modal + 成员编辑 #group-member-edit-modal
+   —— 整页化（顶栏 / 滚动内容 / 底部操作条）
+   前置问题：原为 400px 居中浮窗，成员列表 max-height:220px 内滚，
+             底部只有「关闭」，下半屏空荡。
+   ============================================================ */
+
+/* ---------- 群聊设置主页面 ---------- */
+#group-chat-modal {
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+    background: var(--primary-bg, #fff);
+}
+#group-chat-modal .modal-content {
+    max-width: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;      /* 关键：基础 80vh/92vh 必须覆盖 */
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--primary-bg, #fff);
+    font-family: var(--font-family, 'PingFang SC', sans-serif);
+}
+
+/* 顶栏 */
+#group-chat-modal .modal-title {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: calc(env(safe-area-inset-top, 0px) + 16px) 16px 14px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, .07));
+    display: flex; align-items: center; gap: 9px;
+}
+#group-chat-modal .modal-title i { color: var(--accent-color); font-size: 15px; }
+
+/* 内容区滚动容器（由 JS 包裹，见 group-chat.js wrapGroupScroll） */
+#group-chat-modal .gp-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+}
+#group-chat-modal .settings-section {
+    padding: 0;
+    margin: 0;
+}
+#group-chat-modal .settings-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary, #888);
+    padding: 18px 16px 8px;
+    margin: 0;
+    display: flex; align-items: center; gap: 7px;
+}
+#group-chat-modal .settings-section-title i { color: var(--accent-color); font-size: 12px; }
+
+/* 内容区滚动：底部条由 flex 压住，无需额外占位 */
+
+/* 模式卡 */
+#group-chat-modal #group-mode-toggle {
+    margin: 0 14px;
+    background: var(--primary-bg, #fff) !important;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, .07)) !important;
+    border-radius: 15px !important;
+    padding: 14px !important;
+    gap: 12px !important;
+}
+/* 显示选项卡 */
+#group-chat-modal .settings-section#group-display-section > div {
+    margin: 0 14px;
+}
+#group-chat-modal #group-show-name-toggle {
+    border-radius: 14px !important;
+    padding: 13px 14px !important;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, .07)) !important;
+}
+
+/* 成员区 */
+#group-chat-modal .settings-section#group-members-section {
+    padding-bottom: 12px;
+}
+#group-chat-modal #group-members-list {
+    margin: 0 14px;
+    max-height: none !important;      /* 关键：原来 220px 内滚 */
+    overflow-y: visible !important;
+    display: flex !important;
+    flex-direction: column;
+    gap: 8px;
+}
+#group-chat-modal #group-members-list > div {
+    border-radius: 14px !important;
+    padding: 11px 13px !important;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, .07)) !important;
+    background: var(--primary-bg, #fff) !important;
+}
+
+/* 底部操作条 */
+#group-chat-modal .modal-buttons {
+    margin-top: auto !important;
+    flex: 0 0 auto;
+    display: flex;
+    gap: 10px;
+    padding: 10px 14px calc(env(safe-area-inset-bottom, 0px) + 12px) !important;
+    border-top: 1px solid var(--border-color, rgba(0, 0, 0, .07));
+    background: var(--primary-bg, #fff);
+}
+#group-chat-modal .modal-buttons .modal-btn {
+    flex: 1;
+    margin: 0 !important;
+    height: 42px;
+    border-radius: 21px;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+
+/* ---------- 成员编辑：整页子页，覆盖在群聊设置之上 ---------- */
+#group-member-edit-modal {
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+    background: var(--primary-bg, #fff);
+}
+#group-member-edit-modal .modal-content {
+    max-width: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--primary-bg, #fff);
+    font-family: var(--font-family, 'PingFang SC', sans-serif);
+}
+#group-member-edit-modal .modal-title {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: calc(env(safe-area-inset-top, 0px) + 16px) 16px 14px;
+    font-size: 17px; font-weight: 700; color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, .07));
+    display: flex; align-items: center; gap: 9px;
+}
+#group-member-edit-modal .modal-title i { color: var(--accent-color); font-size: 15px; }
+/* 中间表单吃掉剩余高度 */
+#group-member-edit-modal .gm-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 28px 20px;
+    justify-content: center;
+}
+#group-member-edit-modal .gm-avatar-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+#group-member-edit-modal .gm-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+#group-member-edit-modal .gm-field label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary, #888);
+    padding-left: 2px;
+}
+#group-member-edit-modal #group-member-avatar-preview {
+    width: 92px !important;
+    height: 92px !important;
+    border-radius: 50%;
+    border: 2px dashed var(--border-color, rgba(0, 0, 0, .15));
+    background: var(--secondary-bg, #f6f6f6);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; overflow: hidden;
+}
+#group-member-edit-modal .gm-avatar-box span {
+    font-size: 11px;
+    color: var(--text-secondary, #999);
+}
+#group-member-edit-modal #group-member-name-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px 14px !important;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, .1));
+    border-radius: 13px !important;
+    background: var(--primary-bg, #fff);
+    color: var(--text-primary, #222);
+    font-size: 15px !important;
+    font-family: inherit;
+    outline: none;
+}
+#group-member-edit-modal .modal-buttons {
+    margin-top: auto !important;
+    flex: 0 0 auto;
+    display: flex;
+    gap: 10px;
+    padding: 10px 14px calc(env(safe-area-inset-bottom, 0px) + 12px) !important;
+    border-top: 1px solid var(--border-color, rgba(0, 0, 0, .07));
+    background: var(--primary-bg, #fff);
+}
+#group-member-edit-modal .modal-buttons .modal-btn {
+    flex: 1;
+    margin: 0 !important;
+    height: 42px;
+    border-radius: 21px;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center;
+}

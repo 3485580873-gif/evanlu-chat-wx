@@ -1,0 +1,15 @@
+# 开发/备份产物，不属于线上站点，不部署
+raw_core.js
+raw_reply.js
+raw_verify.js
+live_reply.js
+evan_pages.html
+evan_pages2.html
+
+# 网易云代理（Cloudflare Worker，静态 Pages 无法运行，仅本地开发用）
+netease-proxy/
+
+# 系统/编辑器
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,211 @@
+/* ============================================================
+   头像库（挂在 #fs-avatars 的 FSPage 里）
+   修的问题：
+     1) 双顶栏：FSPage 已有顶栏，ab-box 自带的 .ab-bar 重复显示
+     2) 滑杆改成数字步进器（.va-step）
+     3) 行标签不换行（原来「间隔最短（小时）」被挤成两行）
+   ============================================================ */
+
+/* 内层 .ab-bar 隐藏（只在 FSPane 内隐藏；
+   回退路径 #avatar-vault-modal 直接打开时仍保留它，避免没有顶栏） */
+#fs-avatars .ab-box .ab-bar { display: none !important; }
+
+#fs-avatars .va-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 16px 24px;
+}
+
+/* ---------- 分段切换 ---------- */
+#fs-avatars .va-side {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+#fs-avatars .va-st {
+    padding: 8px 14px;
+    border-radius: 18px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary, #888);
+    background: var(--secondary-bg, #f2f2f4);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+#fs-avatars .va-st.on {
+    background: var(--accent-color, #ff6b9d);
+    color: #fff;
+}
+
+/* ---------- 设置行：标签不换行 + 控件靠右 ---------- */
+#fs-avatars .va-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 2px;
+    border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, .05));
+}
+#fs-avatars .va-row:last-child { border-bottom: none; }
+#fs-avatars .va-row > .k {
+    flex: 1;
+    min-width: 0;
+    font-size: 13.5px;
+    color: var(--text-primary, #222);
+    white-space: nowrap;
+}
+#fs-avatars .va-sec {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary, #888);
+    padding: 18px 2px 8px;
+}
+
+/* ---------- 数字步进器（替代滑杆） ---------- */
+#fs-avatars .va-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    background: var(--secondary-bg, #f2f2f4);
+    border-radius: 19px;
+    padding: 3px;
+}
+#fs-avatars .va-step button {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    background: var(--primary-bg, #fff);
+    color: var(--text-primary, #333);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+}
+#fs-avatars .va-step button:active {
+    background: var(--accent-color, #ff6b9d);
+    color: #fff;
+}
+#fs-avatars .va-step b {
+    min-width: 46px;
+    text-align: center;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-primary, #222);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 开关 ---------- */
+#fs-avatars .mts-sw {
+    flex-shrink: 0;
+    width: 44px;
+    height: 24px;
+    position: relative;
+    display: inline-block;
+}
+#fs-avatars .mts-sw input { opacity: 0; width: 0; height: 0; position: absolute; }
+#fs-avatars .mts-sw i {
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    background: var(--border-color, #d8d8dc);
+    transition: background .25s;
+    cursor: pointer;
+}
+#fs-avatars .mts-sw i::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    top: 3px;
+    left: 3px;
+    transition: left .25s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .22);
+}
+#fs-avatars .mts-sw input:checked + i {
+    background: var(--accent-color, #ff6b9d);
+}
+#fs-avatars .mts-sw input:checked + i::before {
+    left: 23px;
+}
+
+/* ---------- 头像网格 ---------- */
+#fs-avatars .va-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 6px;
+}
+@media (max-width: 340px) {
+    #fs-avatars .va-grid { grid-template-columns: repeat(2, 1fr); }
+}
+#fs-avatars .va-cell {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--secondary-bg, #f2f2f4);
+}
+#fs-avatars .va-cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#fs-avatars .va-cell.cur { outline: 2.5px solid var(--accent-color, #ff6b9d); outline-offset: -2.5px; }
+
+/* ---------- 换头像记录 ---------- */
+#fs-avatars .va-logs {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+#fs-avatars .va-log {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 11px;
+    border-radius: 12px;
+    background: var(--secondary-bg, #f6f6f6);
+}
+#fs-avatars .va-log img {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+#fs-avatars .va-lb { flex: 1; min-width: 0; font-size: 12.5px; color: var(--text-secondary, #777); }
+#fs-avatars .va-lb b { color: var(--text-primary, #222); }
+#fs-avatars .va-lt { font-size: 11px; color: var(--text-secondary, #aaa); flex-shrink: 0; }
+/* ============================================================
+   主题编辑器里的数字步进器 .te-step（圆角 / 行高）
+   ============================================================ */
+.te-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+    background: var(--secondary-bg, #f2f2f4);
+    border-radius: 18px;
+    padding: 3px;
+}
+.te-step button {
+    width: 28px; height: 28px;
+    border: none; border-radius: 50%;
+    background: var(--primary-bg, #fff);
+    color: var(--text-primary, #333);
+    font-size: 11px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+}
+.te-step button:active { background: var(--accent-color, #ff6b9d); color: #fff; }
+.te-step b {
+    min-width: 52px; text-align: center;
+    font-size: 13px; font-weight: 700;
+    color: var(--text-primary, #222);
+    font-variant-numeric: tabular-nums;
+}
